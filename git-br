@@ -13,6 +13,14 @@ do
                 | xargs -I % git branch -d %
             exit 0
             ;;
+        "")
+            break
+            ;;
+        *)
+            # If an argument is given
+            git checkout -b "$1"
+            exit $?
+            ;;
     esac
     shift
 done
