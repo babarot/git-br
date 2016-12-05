@@ -1,25 +1,14 @@
 #!/bin/bash
 
+set -e
+
+is_force=false
+
 while (( $# > 0 ))
 do
     case "$1" in
-        -h | --help)
-            exit 0
-            ;;
-        -s | --sync)
-            git fetch --prune --all
-            git branch --merged \
-                | grep -v '*' \
-                | xargs -I % git branch -d %
-            exit 0
-            ;;
-        "")
-            break
-            ;;
-        *)
-            # If an argument is given
-            git checkout -b "$1"
-            exit $?
+        -f)
+            is_force=true
             ;;
     esac
     shift
@@ -42,10 +31,16 @@ is_already_branched() { git branch | grep -q "${branch##*/}" &>/dev/null; }
 if [[ $branch =~ ^remotes ]]; then
     if is_already_branched; then
         # already exists
-        git checkout "${branch##*/}"
-        exit $?
+        if $is_force; then
+            git checkout -q master
+            git branch -D "${branch##*/}"
+            git checkout -b "${branch##*/}" "${branch#*/}"
+        else
+            git checkout "${branch##*/}"
+        fi
+    else
+        git checkout -b "${branch##*/}" "${branch#*/}"
     fi
-    git checkout -b "${branch##*/}" "${branch#*/}"
 else
     if is_already_branched; then
         git checkout "$branch"
