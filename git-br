@@ -10,6 +10,13 @@ do
         -f)
             is_force=true
             ;;
+        -s|--sync)
+            git fetch --prune --all
+            git branch --merged \
+                | grep -v '^*' \
+                | xargs git branch -d
+            exit $?
+            ;;
     esac
     shift
 done
